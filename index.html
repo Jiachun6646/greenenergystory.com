@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Memory Test: Unleash Your Brain's Potential | Green Energy Story</title>
+    <meta name="description" content="Challenge your memory skills with our progressive online memory training game. Improve cognitive abilities through 20 levels of increasing difficulty.">
+    <meta name="keywords" content="memory test, brain training, cognitive skills, memory game, mental exercise">
+    <style>
+        :root {
+            --primary-white: #f5f5f7;
+            --text-gray: #1d1d1f;
+            --accent-blue: #0066cc;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: var(--text-gray);
+            background-color: var(--primary-white);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        header {
+            background-color: rgba(255,255,255,0.98);
+            padding: 20px 0;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .hero {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 100px 0;
+        }
+
+        .hero-content {
+            flex: 1;
+            padding-right: 50px;
+        }
+
+        .hero h1 {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            background: linear-gradient(to right, #0066cc, #00a2ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-game {
+            flex: 1;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .hero-game iframe {
+            width: 100%;
+            height: 600px;
+            border: none;
+        }
+
+        .section {
+            padding: 80px 0;
+            text-align: center;
+        }
+
+        .section h2 {
+            font-size: 36px;
+            margin-bottom: 40px;
+        }
+
+        .features {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .feature {
+            flex: 1;
+            padding: 30px;
+            margin: 0 15px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+
+        .how-it-works ol {
+            display: flex;
+            justify-content: space-between;
+            counter-reset: step-counter;
+            list-style: none;
+        }
+
+        .how-it-works ol li {
+            flex: 1;
+            position: relative;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .how-it-works ol li::before {
+            counter-increment: step-counter;
+            content: counter(step-counter);
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 40px;
+            background: var(--accent-blue);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .scoring {
+            background-color: #f0f0f2;
+            text-align: center;
+        }
+
+        .cta {
+            background: linear-gradient(to right, #0066cc, #00a2ff);
+            color: white;
+            padding: 60px 0;
+            text-align: center;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: white;
+            color: var(--accent-blue);
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: 600;
+            margin-top: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        .cta-button:hover {
+            transform: scale(1.05);
+        }
+
+        footer {
+            background-color: #f5f5f7;
+            padding: 40px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            Green Energy Story: Memory Training
+        </div>
+    </header>
+
+    <main>
+        <section class="hero container">
+            <div class="hero-content">
+                <h1>Memory Test: Train Your Brain</h1>
+                <p>A revolutionary online game designed to boost your cognitive abilities through progressive memory challenges.</p>
+            </div>
+            <div class="hero-game">
+                <iframe src="https://greenenergystory.com/game.html" title="Memory Test Game"></iframe>
+            </div>
+        </section>
+
+        <section class="section features container">
+            <h2>Why Play Memory Test?</h2>
+            <div class="feature">
+                <h3>Cognitive Enhancement</h3>
+                <p>Systematically improve memory, concentration, and mental agility.</p>
+            </div>
+            <div class="feature">
+                <h3>Progressive Difficulty</h3>
+                <p>20 levels that adapt and challenge your memory skills.</p>
+            </div>
+            <div class="feature">
+                <h3>Fun & Scientific</h3>
+                <p>Engaging gameplay based on cognitive training principles.</p>
+            </div>
+        </section>
+
+        <section class="section how-it-works container">
+            <h2>How It Works</h2>
+            <ol>
+                <li>
+                    <h3>Remember</h3>
+                    <p>View a number for 5 seconds</p>
+                </li>
+                <li>
+                    <h3>Recall</h3>
+                    <p>Input the number from memory</p>
+                </li>
+                <li>
+                    <h3>Progress</h3>
+                    <p>Advance through 20 challenging levels</p>
+                </li>
+                <li>
+                    <h3>Score</h3>
+                    <p>Track your cognitive performance</p>
+                </li>
+            </ol>
+        </section>
+
+        <section class="section scoring container">
+            <h2>Scoring System</h2>
+            <p>Our unique scoring system rewards memory improvement:</p>
+            <ul>
+                <li>First level: 5 points</li>
+                <li>Progressively increases to 100 points at level 20</li>
+                <li>Maximum possible score: 1050 points</li>
+                <li>Score above 840: Exceptional memory performance</li>
+            </ul>
+        </section>
+
+        <section class="cta">
+            <div class="container">
+                <h2>Ready to Challenge Your Memory?</h2>
+                <p>Start training now and unlock your brain's potential!</p>
+                <a href="#" class="cta-button">Play Memory Test</a>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            © 2024 Green Energy Story. All rights reserved.
+        </div>
+    </footer>
+</body>
+</html>
