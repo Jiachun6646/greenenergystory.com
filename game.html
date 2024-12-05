@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>记忆力训练游戏</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            text-align: center;
+        }
+        #game-container {
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+        }
+        #progress-bar {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .progress-box {
+            width: 20px;
+            height: 20px;
+            background-color: #ddd;
+            border: 1px solid #999;
+        }
+        .progress-box.correct { background-color: #4CAF50; }
+        .progress-box.incorrect { background-color: #F44336; }
+        #number-display {
+            font-size: 48px;
+            margin: 20px 0;
+            height: 60px;
+        }
+        #timer {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        #game-rules, #start-screen, #game-screen, #result-screen {
+            display: none;
+        }
+        #input-section {
+            margin-top: 20px;
+        }
+        #user-input {
+            padding: 10px;
+            font-size: 18px;
+            width: 300px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 18px;
+            margin: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="progress-bar">
+            <!-- 20个进度格子会在JS中动态生成 -->
+        </div>
+
+        <div id="game-rules">
+            <h1>记忆力训练游戏规则</h1>
+            <p>游戏共20关，难度逐步提升：</p>
+            <ul>
+                <li>每一关有5秒记忆时间</li>
+                <li>从1位数开始，逐渐增加到20位数</li>
+                <li>每关显示对应位数的随机数字</li>
+                <li>倒计时结束后输入你记忆的数字</li>
+                <li>答对可获得递增的分数</li>
+            </ul>
+            <button onclick="startGame()">开始游戏</button>
+        </div>
+
+        <div id="start-screen">
+            <h1>记忆力训练游戏</h1>
+            <p>准备好挑战你的记忆力了吗？</p>
+            <button onclick="startGame()">开始游戏</button>
+        </div>
+
+        <div id="game-screen">
+            <div id="timer">5</div>
+            <div id="number-display"></div>
+            <div id="input-section" style="display:none;">
+                <input type="text" id="user-input" placeholder="输入你记忆的数字">
+                <button onclick="checkAnswer()">提交</button>
+            </div>
+        </div>
+
+        <div id="result-screen">
+            <h1>游戏结果</h1>
+            <p id="total-score">总分：0</p>
+            <p id="performance"></p>
+            <button onclick="restartGame()">重新开始</button>
+        </div>
+    </div>
+
+    <script>
+        let currentLevel = 1;
+        let totalScore = 0;
+        let currentNumber = '';
+        let timer;
+
+        function initProgressBar() {
+            const progressBar = document.getElementById('progress-bar');
+            progressBar.innerHTML = '';
+            for (let i = 0; i < 20; i++) {
+                const box = document.createElement('div');
+                box.classList.add('progress-box');
+                progressBar.appendChild(box);
+            }
+        }
+
+        function showGameRules() {
+            hideAllScreens();
+            document.getElementById('game-rules').style.display = 'block';
+        }
+
+        function hideAllScreens() {
+            ['game-rules', 'start-screen', 'game-screen', 'result-screen']
+                .forEach(id => document.getElementById(id).style.display = 'none');
+        }
+
+        function startGame() {
+            currentLevel = 1;
+            totalScore = 0;
+            initProgressBar();
+            hideAllScreens();
+            document.getElementById('game-screen').style.display = 'block';
+            playLevel();
+        }
+
+        function playLevel() {
+            const numberDisplay = document.getElementById('number-display');
+            const inputSection = document.getElementById('input-section');
+            const timerDisplay = document.getElementById('timer');
+
+            // 生成对应位数的随机数
+            currentNumber = generateNumber(currentLevel);
+            numberDisplay.textContent = currentNumber;
+            inputSection.style.display = 'none';
+            
+            let timeLeft = 5;
+            timerDisplay.textContent = timeLeft;
+
+            timer = setInterval(() => {
+                timeLeft--;
+                timerDisplay.textContent = timeLeft;
+
+                if (timeLeft === 0) {
+                    clearInterval(timer);
+                    numberDisplay.textContent = '';
+                    inputSection.style.display = 'block';
+                }
+            }, 1000);
+        }
+
+        function generateNumber(level) {
+            const min = Math.pow(10, level - 1);
+            const max = Math.pow(10, level) - 1;
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function checkAnswer() {
+            const userInput = document.getElementById('user-input');
+            const progressBoxes = document.querySelectorAll('.progress-box');
+
+            if (userInput.value === currentNumber.toString()) {
+                // 答对
+                totalScore += currentLevel * 5;
+                progressBoxes[currentLevel - 1].classList.add('correct');
+            } else {
+                // 答错
+                progressBoxes[currentLevel - 1].classList.add('incorrect');
+            }
+
+            currentLevel++;
+            userInput.value = '';
+
+            if (currentLevel > 20) {
+                showResult();
+            } else {
+                playLevel();
+            }
+        }
+
+        function showResult() {
+            hideAllScreens();
+            const resultScreen = document.getElementById('result-screen');
+            const totalScoreElement = document.getElementById('total-score');
+            const performanceElement = document.getElementById('performance');
+
+            totalScoreElement.textContent = `总分：${totalScore}`;
+
+            if (totalScore >= 840) {
+                performanceElement.textContent = `🏆 优秀！你的记忆力超群！`;
+            } else if (totalScore >= 630) {
+                performanceElement.textContent = `👍 不错！继续加油！`;
+            } else {
+                performanceElement.textContent = `💪 还需要继续锻炼哦！`;
+            }
+
+            resultScreen.style.display = 'block';
+        }
+
+        function restartGame() {
+            showGameRules();
+        }
+
+        // 初始化：显示游戏规则
+        showGameRules();
+    </script>
+</body>
+</html>
