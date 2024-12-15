@@ -1,255 +1,246 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Say the Color not the Word</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
-        }
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f0f0f0;
-            text-align: center;
-        }
-        #game-container {
-            width: 100%;
-            max-width: 600px;
-            padding: 20px;
-        }
-        #start-screen, #game-screen, #result-screen {
-            display: none;
-        }
-        #start-screen.active, #game-screen.active, #result-screen.active {
-            display: block;
-        }
-        .title {
-            font-size: 24px;
-            margin-bottom: 20px;
-        }
-        .start-btn {
-            font-size: 18px;
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-top: 20px;
-        }
-        .grid-item {
-            background-color: #e0e0e0;
-            padding: 15px;
-            cursor: pointer;
-            font-size: 18px;
-            transition: background-color 0.3s;
-        }
-        .grid-item:hover {
-            background-color: #d0d0d0;
-        }
-        .top-word {
-            font-size: 24px;
-            margin-bottom: 20px;
-        }
-        #timer, #level {
-            font-size: 18px;
-            margin-bottom: 10px;
-        }
-        .retry-btn {
-            font-size: 18px;
-            padding: 10px 20px;
-            background-color: #2196F3;
-            color: white;
-            border: none;
-            cursor: pointer;
-            margin-top: 20px;
-        }
-    </style>
-</head>
-<body>
-    <div id="game-container">
-        <!-- 开始界面 -->
-        <div id="start-screen" class="active">
-            <h1 class="title">Say the Color not the Word</h1>
-            <button id="start-btn" class="start-btn">开始游戏</button>
-        </div>
+import React, { useState, useEffect, useCallback } from 'react';
+import { Button } from '@/components/ui/button';
 
-        <!-- 游戏界面 -->
-        <div id="game-screen">
-            <div id="level">第 1 关</div>
-            <div id="timer">时间：5.0 秒</div>
-            <div class="top-word" id="top-word">颜色词语</div>
-            <div class="grid" id="game-grid"></div>
-        </div>
+const COLORS = ['red', 'orange', 'yellow', 'blue', 'green', 'purple', 'pink', 'black', 'gray'];
+const COLOR_NAMES = {
+  'red': '红色',
+  'orange': '橙色', 
+  'yellow': '黄色',
+  'blue': '蓝色',
+  'green': '绿色',
+  'purple': '紫色',
+  'pink': '粉色',
+  'black': '黑色',
+  'gray': '灰色'
+};
 
-        <!-- 结果界面 -->
-        <div id="result-screen">
-            <h2>游戏结束</h2>
-            <p id="final-score">你的得分：0</p>
-            <button id="retry-btn" class="retry-btn">再来一次</button>
-        </div>
+const ColorWordGame = () => {
+  const [gameState, setGameState] = useState('start');
+  const [level, setLevel] = useState(1);
+  const [score, setScore] = useState(0);
+  const [keywordColor, setKeywordColor] = useState('');
+  const [keyword, setKeyword] = useState('');
+  const [gridWords, setGridWords] = useState([]);
+  const [timeLeft, setTimeLeft] = useState(6);
+  const [progressWidth, setProgressWidth] = useState('100%');
+
+  const getRandomColor = useCallback((excludeColor = '') => {
+    const availableColors = COLORS.filter(color => color !== excludeColor);
+    return availableColors[Math.floor(Math.random() * availableColors.length)];
+  }, []);
+
+  const setupLevel = useCallback(() => {
+    // 随机选择关键词颜色和关键词
+    const newKeywordColor = getRandomColor();
+    let newKeyword;
+    do {
+      newKeyword = getRandomColor(newKeywordColor);
+    } while (newKeyword === newKeywordColor);
+
+    // 随机生成9宫格词语
+    const shuffledWords = [...COLORS]
+      .sort(() => 0.5 - Math.random())
+      .slice(0, 9)
+      .map(color => COLOR_NAMES[color]);
+
+    setKeywordColor(newKeywordColor);
+    setKeyword(COLOR_NAMES[newKeyword]);
+    setGridWords(shuffledWords);
+    
+    // 设置倒计时
+    const initialTime = 6 - (level * 0.25);
+    setTimeLeft(initialTime);
+    setProgressWidth('100%');
+  }, [level, getRandomColor]);
+
+  useEffect(() => {
+    if (gameState === 'playing') {
+      const timer = setInterval(() => {
+        setTimeLeft(prev => {
+          if (prev <= 0) {
+            clearInterval(timer);
+            setGameState('gameOver');
+            return 0;
+          }
+          setProgressWidth(`${(prev / 6) * 100}%`);
+          return prev - 0.1;
+        });
+      }, 100);
+
+      return () => clearInterval(timer);
+    }
+  }, [gameState]);
+
+  const startGame = () => {
+    setGameState('playing');
+    setupLevel();
+  };
+
+  const handleGridClick = (clickedWord) => {
+    if (gameState !== 'playing') return;
+
+    // 检查是否点击了与关键词颜色匹配的词语
+    const isCorrect = COLORS.find(color => 
+      COLOR_NAMES[color] === clickedWord
+    ) === keywordColor;
+
+    if (isCorrect) {
+      if (level === 20) {
+        setGameState('won');
+      } else {
+        setLevel(prev => prev + 1);
+        setScore(prev => prev + Math.pow(2, level));
+        setupLevel();
+      }
+    } else {
+      setGameState('gameOver');
+    }
+  };
+
+  const resetGame = () => {
+    setGameState('start');
+    setLevel(1);
+    setScore(0);
+  };
+
+  const renderStartScreen = () => (
+    <div className="flex flex-col items-center justify-center h-full text-center p-4">
+      <h1 style={{
+        fontFamily: 'Cooper Black', 
+        fontSize: '48px', 
+        color: 'blue', 
+        fontWeight: 'bold'
+      }}>
+        Click the Color not the Word
+      </h1>
+      <p style={{
+        fontFamily: 'Microsoft YaHei', 
+        fontSize: '20px', 
+        color: 'black',
+        marginTop: '20px'
+      }}>
+        20 levels. Increasing distractions. Against the clock.
+      </p>
+      <p style={{
+        fontFamily: 'Microsoft YaHei', 
+        fontSize: '20px', 
+        color: 'black',
+        marginTop: '10px'
+      }}>
+        All you have to do: click the colour and not the word
+      </p>
+      <Button 
+        onClick={startGame}
+        className="mt-10 px-8 py-4 rounded-lg"
+        style={{
+          backgroundColor: '#87CEFA',
+          color: 'white',
+          fontFamily: 'Microsoft YaHei'
+        }}
+      >
+        START PLAY
+      </Button>
     </div>
+  );
 
-    <script>
-        const colors = ['红色', '橙色', '黄色', '蓝色', '绿色', '紫色', '粉色', '黑色', '白色', '灰色'];
-        const colorMap = {
-            '红色': '#FF0000',
-            '橙色': '#FFA500',
-            '黄色': '#FFFF00',
-            '蓝色': '#0000FF',
-            '绿色': '#00FF00',
-            '紫色': '#800080',
-            '粉色': '#FFC0CB',
-            '黑色': '#000000',
-            '白色': '#FFFFFF',
-            '灰色': '#808080'
-        };
+  const renderGameScreen = () => (
+    <div className="flex flex-col h-full">
+      {/* 进度条 */}
+      <div 
+        className="h-2 bg-blue-500" 
+        style={{ width: progressWidth }}
+      />
 
-        class ColorGame {
-            constructor() {
-                this.startScreen = document.getElementById('start-screen');
-                this.gameScreen = document.getElementById('game-screen');
-                this.resultScreen = document.getElementById('result-screen');
-                this.startBtn = document.getElementById('start-btn');
-                this.retryBtn = document.getElementById('retry-btn');
-                this.levelDisplay = document.getElementById('level');
-                this.timerDisplay = document.getElementById('timer');
-                this.topWordDisplay = document.getElementById('top-word');
-                this.gameGrid = document.getElementById('game-grid');
-                this.finalScoreDisplay = document.getElementById('final-score');
+      {/* 关键词 */}
+      <div 
+        className="text-center mt-10 font-bold"
+        style={{
+          fontFamily: 'Microsoft YaHei', 
+          fontSize: '48px', 
+          color: keywordColor
+        }}
+      >
+        {keyword}
+      </div>
 
-                this.startBtn.addEventListener('click', () => this.startGame());
-                this.retryBtn.addEventListener('click', () => this.startGame());
+      {/* 九宫格 */}
+      <div className="grid grid-cols-3 gap-4 p-4 flex-grow">
+        {gridWords.map((word, index) => (
+          <button 
+            key={index}
+            onClick={() => handleGridClick(word)}
+            className="border-2 border-blue-300 rounded-lg flex items-center justify-center"
+            style={{
+              fontFamily: 'Microsoft YaHei', 
+              fontSize: '32px', 
+              color: 'black'
+            }}
+          >
+            {word}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
 
-                this.resetGame();
-            }
+  const renderGameOverScreen = () => (
+    <div className="flex flex-col items-center justify-center h-full text-center">
+      <p 
+        style={{
+          fontFamily: 'Microsoft YaHei', 
+          fontSize: '36px', 
+          color: 'red'
+        }}
+      >
+        Time is out
+      </p>
+      <p 
+        style={{
+          fontFamily: 'Microsoft YaHei', 
+          fontSize: '36px', 
+          color: 'blue',
+          marginTop: '20px'
+        }}
+      >
+        Your Score is {score}
+      </p>
+      <Button 
+        onClick={resetGame}
+        className="mt-10 px-8 py-4 rounded-lg"
+        style={{
+          backgroundColor: '#87CEFA',
+          color: 'white',
+          fontFamily: 'Microsoft YaHei'
+        }}
+      >
+        Try again
+      </Button>
+    </div>
+  );
 
-            resetGame() {
-                this.level = 1;
-                this.score = 0;
-                this.timer = null;
-            }
+  const renderWinScreen = () => (
+    <div className="flex items-center justify-center h-full text-center">
+      <h1 
+        style={{
+          fontFamily: 'Cooper Black', 
+          fontSize: '48px', 
+          color: 'red', 
+          fontWeight: 'bold'
+        }}
+      >
+        Congratulations. You made it through all the levels!
+      </h1>
+    </div>
+  );
 
-            startGame() {
-                this.resetGame();
-                this.startScreen.classList.remove('active');
-                this.resultScreen.classList.remove('active');
-                this.gameScreen.classList.add('active');
-                this.playLevel();
-            }
+  return (
+    <div className="h-screen w-screen flex flex-col">
+      {gameState === 'start' && renderStartScreen()}
+      {gameState === 'playing' && renderGameScreen()}
+      {gameState === 'gameOver' && renderGameOverScreen()}
+      {gameState === 'won' && renderWinScreen()}
+    </div>
+  );
+};
 
-            playLevel() {
-                // 计算关卡时间和得分
-                const time = 5.0 - (this.level - 1) * 0.02;
-                const levelScore = Math.pow(5, this.level);
-
-                this.levelDisplay.textContent = `第 ${this.level} 关`;
-                this.generateLevelGrid(time);
-
-                this.startTimer(time, () => {
-                    this.endGame();
-                });
-            }
-
-            generateLevelGrid(time) {
-                // 清空网格
-                this.gameGrid.innerHTML = '';
-
-                // 选择顶部词语和字体颜色
-                const topWord = this.getRandomColor();
-                let topWordColor = this.getRandomColor(topWord);
-
-                this.topWordDisplay.textContent = topWord;
-                this.topWordDisplay.style.color = colorMap[topWordColor];
-
-                // 生成9宫格
-                const gridColors = this.shuffleColors();
-                gridColors.forEach(color => {
-                    const gridItem = document.createElement('div');
-                    gridItem.classList.add('grid-item');
-                    gridItem.textContent = color;
-                    gridItem.style.color = colorMap[color];
-
-                    gridItem.addEventListener('click', () => {
-                        this.checkAnswer(color, topWord, topWordColor, time);
-                    });
-
-                    this.gameGrid.appendChild(gridItem);
-                });
-            }
-
-            checkAnswer(selectedColor, topWord, topWordColor, time) {
-                clearTimeout(this.timer);
-
-                // 判断是否与顶部词语颜色匹配
-                if (selectedColor === topWordColor) {
-                    this.score += Math.pow(5, this.level);
-                    this.level++;
-
-                    if (this.level <= 20) {
-                        this.playLevel();
-                    } else {
-                        this.endGame(true);
-                    }
-                } else {
-                    this.endGame();
-                }
-            }
-
-            startTimer(time, callback) {
-                let remainingTime = time;
-                this.timerDisplay.textContent = `时间：${remainingTime.toFixed(1)} 秒`;
-
-                this.timer = setInterval(() => {
-                    remainingTime -= 0.1;
-                    this.timerDisplay.textContent = `时间：${remainingTime.toFixed(1)} 秒`;
-
-                    if (remainingTime <= 0) {
-                        clearInterval(this.timer);
-                        callback();
-                    }
-                }, 100);
-            }
-
-            endGame(isWin = false) {
-                clearTimeout(this.timer);
-                this.gameScreen.classList.remove('active');
-                this.resultScreen.classList.add('active');
-
-                let resultText = `你的得分：${this.score}`;
-                if (this.score > 840) {
-                    resultText += "\n优秀！";
-                }
-                this.finalScoreDisplay.textContent = resultText;
-            }
-
-            getRandomColor(excludeColor = null) {
-                const availableColors = colors.filter(color => color !== excludeColor);
-                return availableColors[Math.floor(Math.random() * availableColors.length)];
-            }
-
-            shuffleColors() {
-                const shuffledColors = [...colors];
-                for (let i = shuffledColors.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [shuffledColors[i], shuffledColors[j]] = [shuffledColors[j], shuffledColors[i]];
-                }
-                return shuffledColors.slice(0, 9);
-            }
-        }
-
-        new ColorGame();
-    </script>
-</body>
-</html>
+export default ColorWordGame;
