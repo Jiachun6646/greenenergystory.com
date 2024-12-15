@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Color and Word Game</title>
+    <title>Click the Color not the Word</title>
     <style>
         * {
             margin: 0;
@@ -16,31 +16,32 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
+            text-align: center;
             background-color: #f0f0f0;
         }
-        #gameContainer {
+        #game-container {
             width: 100%;
             max-width: 600px;
-            text-align: center;
+            padding: 20px;
         }
-        #startScreen, #gameScreen, #endScreen {
+        #start-screen, #game-screen, #end-screen {
             display: none;
         }
-        #startScreen.active, #gameScreen.active, #endScreen.active {
+        #start-screen.active, #game-screen.active, #end-screen.active {
             display: block;
         }
-        #startTitle {
+        #start-title {
             color: red;
             font-size: 48px;
             font-weight: bold;
             margin-bottom: 20px;
         }
-        #startDescription {
+        #start-description {
             color: black;
             font-size: 20px;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
         }
-        #startButton, .tryAgainButton {
+        #start-btn, .retry-btn {
             background-color: #87CEFA;
             color: white;
             border: none;
@@ -50,126 +51,102 @@
             cursor: pointer;
             margin-top: 20px;
         }
-        #progressBar {
+        #progress-bar {
             width: 100%;
             height: 2px;
             background-color: blue;
+            margin-bottom: 20px;
         }
-        #keywordDisplay {
+        #keyword {
             font-size: 48px;
             font-weight: bold;
-            margin: 20px 0;
+            margin-bottom: 20px;
         }
-        #gridContainer {
+        #grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 10px;
-            width: 100%;
-            max-width: 500px;
-            margin: 0 auto;
         }
-        .gridCell {
+        .grid-cell {
             border: 0.5px solid blue;
             border-radius: 10px;
-            padding: 15px;
+            padding: 20px;
             font-size: 30px;
             color: black;
             cursor: pointer;
         }
-        #failureScreen {
-            text-align: center;
-        }
-        #failureMessage {
-            font-family: 'Microsoft YaHei', sans-serif;
-            color: red;
-            font-size: 36px;
-            font-weight: bold;
-            margin-bottom: 20px;
-        }
-        #scoreMessage {
-            font-family: 'Microsoft YaHei', sans-serif;
-            color: blue;
-            font-size: 36px;
-            margin-bottom: 20px;
-        }
-        #successScreen {
-            text-align: center;
-        }
-        #successMessage {
-            font-family: 'Microsoft YaHei', sans-serif;
-            color: red;
+        #end-title {
             font-size: 48px;
             font-weight: bold;
+            margin-bottom: 20px;
+        }
+        #score {
+            font-size: 36px;
+            color: blue;
             margin-bottom: 20px;
         }
     </style>
 </head>
 <body>
-    <div id="gameContainer">
+    <div id="game-container">
         <!-- 开始界面 -->
-        <div id="startScreen" class="active">
-            <div id="startTitle">Click the Color not the Word</div>
-            <div id="startDescription">20 levels. Increasing distractions. Against the clock. All you have to do: click the colour and not the word</div>
-            <button id="startButton">START PLAY</button>
+        <div id="start-screen" class="active">
+            <div id="start-title">Click the Color not the Word</div>
+            <div id="start-description">20 levels. Increasing distractions. Against the clock. All you have to do: click the colour and not the word</div>
+            <button id="start-btn">START PLAY</button>
         </div>
 
         <!-- 游戏界面 -->
-        <div id="gameScreen">
-            <div id="progressBar"></div>
-            <div id="keywordDisplay">Red</div>
-            <div id="gridContainer"></div>
+        <div id="game-screen">
+            <div id="progress-bar"></div>
+            <div id="keyword"></div>
+            <div id="grid"></div>
         </div>
 
-        <!-- 游戏失败界面 -->
-        <div id="failureScreen">
-            <div id="failureMessage">Sorry, You Failed !</div>
-            <div id="scoreMessage">Your Score is 0</div>
-            <button class="tryAgainButton">Try again</button>
-        </div>
-
-        <!-- 游戏成功界面 -->
-        <div id="successScreen">
-            <div id="successMessage">Congratulations. You made it through all the levels !</div>
-            <button class="tryAgainButton">Try again</button>
+        <!-- 结束界面 -->
+        <div id="end-screen">
+            <div id="end-title"></div>
+            <div id="score"></div>
+            <button class="retry-btn">Try again</button>
         </div>
     </div>
 
     <script>
-        const COLORS = ['Red', 'Blue', 'Green', 'Yellow', 'Black', 'Purple', 'Pink', 'Brown', 'Gray'];
-        const VALID_COLORS = {
-            'Red': '#FF0000', 
-            'Blue': '#0000FF', 
-            'Green': '#00FF00', 
-            'Yellow': '#FFFF00', 
-            'Black': '#000000', 
-            'Purple': '#800080', 
-            'Pink': '#FFC0CB', 
-            'Brown': '#A52A2A', 
+        const colors = ['Red', 'Blue', 'Green', 'Yellow', 'Black', 'Purple', 'Pink', 'Brown', 'Gray'];
+        const colorMap = {
+            'Red': '#FF0000',
+            'Blue': '#0000FF',
+            'Green': '#00FF00',
+            'Yellow': '#FFFF00',
+            'Black': '#000000',
+            'Purple': '#800080',
+            'Pink': '#FFC0CB',
+            'Brown': '#A52A2A',
             'Gray': '#808080'
         };
 
-        class AttentionGame {
+        class Game {
             constructor() {
-                this.currentLevel = 1;
-                this.score = 0;
-                this.totalLevels = 20;
-                this.gameTime = 6;
+                this.startScreen = document.getElementById('start-screen');
+                this.gameScreen = document.getElementById('game-screen');
+                this.endScreen = document.getElementById('end-screen');
+                this.progressBar = document.getElementById('progress-bar');
+                this.keywordEl = document.getElementById('keyword');
+                this.gridEl = document.getElementById('grid');
+                this.scoreEl = document.getElementById('score');
+                this.endTitleEl = document.getElementById('end-title');
 
-                this.startScreen = document.getElementById('startScreen');
-                this.gameScreen = document.getElementById('gameScreen');
-                this.failureScreen = document.getElementById('failureScreen');
-                this.successScreen = document.getElementById('successScreen');
-                this.progressBar = document.getElementById('progressBar');
-                this.keywordDisplay = document.getElementById('keywordDisplay');
-                this.gridContainer = document.getElementById('gridContainer');
-                this.scoreMessage = document.getElementById('scoreMessage');
+                this.currentLevel = 1;
+                this.totalLevels = 20;
+                this.score = 0;
+                this.timer = null;
 
                 this.bindEvents();
             }
 
             bindEvents() {
-                document.getElementById('startButton').addEventListener('click', () => this.startGame());
-                document.querySelectorAll('.tryAgainButton').forEach(btn => {
+                document.getElementById('start-btn').addEventListener('click', () => this.startGame());
+                document.querySelectorAll('.retry-btn').forEach(btn => {
                     btn.addEventListener('click', () => this.resetGame());
                 });
             }
@@ -177,62 +154,64 @@
             startGame() {
                 this.startScreen.classList.remove('active');
                 this.gameScreen.classList.add('active');
+                this.currentLevel = 1;
+                this.score = 0;
                 this.setupLevel();
             }
 
             setupLevel() {
-                // 随机选择关键词和颜色
-                const keywordColor = this.getRandomColor();
-                const textColor = this.getRandomColorExcept(keywordColor);
-                const gridColors = this.shuffleArray(COLORS.slice());
+                // 重置进度条
+                this.progressBar.style.width = '100%';
+                
+                // 选择关键词和颜色
+                const keyword = this.getRandomItem(colors);
+                const keywordColor = this.getDistinctColor(keyword);
+                
+                // 设置关键词
+                this.keywordEl.textContent = keyword;
+                this.keywordEl.style.color = colorMap[keywordColor];
 
-                // 设置显示的关键词和颜色
-                this.keywordDisplay.textContent = keywordColor;
-                this.keywordDisplay.style.color = VALID_COLORS[textColor];
-
-                // 清空并重新创建九宫格
-                this.gridContainer.innerHTML = '';
+                // 创建九宫格
+                this.gridEl.innerHTML = '';
+                const gridColors = this.shuffleArray(colors);
                 gridColors.forEach(color => {
                     const cell = document.createElement('div');
-                    cell.classList.add('gridCell');
                     cell.textContent = color;
-                    cell.addEventListener('click', () => this.checkAnswer(color, keywordColor, textColor));
-                    this.gridContainer.appendChild(cell);
+                    cell.classList.add('grid-cell');
+                    cell.addEventListener('click', () => this.checkAnswer(color, keywordColor));
+                    this.gridEl.appendChild(cell);
                 });
 
-                // 开始计时器
-                this.startTimer();
+                // 启动计时器
+                const levelTime = 6 - (this.currentLevel * 0.25);
+                this.startTimer(levelTime);
             }
 
-            startTimer() {
-                const progressBar = this.progressBar;
-                progressBar.style.width = '100%';
-                
-                let remainingTime = this.gameTime;
-                const interval = setInterval(() => {
-                    remainingTime -= 0.1;
-                    const percentage = (remainingTime / this.gameTime) * 100;
-                    progressBar.style.width = `${percentage}%`;
+            startTimer(duration) {
+                let timeLeft = duration;
+                this.timer = setInterval(() => {
+                    timeLeft -= 0.05;
+                    const percentage = (timeLeft / duration) * 100;
+                    this.progressBar.style.width = `${percentage}%`;
 
-                    if (remainingTime <= 0) {
-                        clearInterval(interval);
+                    if (timeLeft <= 0) {
                         this.gameOver(false);
                     }
-                }, 100);
+                }, 50);
             }
 
-            checkAnswer(selectedColor, keywordColor, textColor) {
-                if (selectedColor === textColor) {
-                    this.levelUp();
+            checkAnswer(selected, correctColor) {
+                clearInterval(this.timer);
+                if (selected === correctColor) {
+                    this.advanceLevel();
                 } else {
                     this.gameOver(false);
                 }
             }
 
-            levelUp() {
+            advanceLevel() {
                 this.currentLevel++;
                 this.score += Math.pow(2, this.currentLevel - 1);
-                this.gameTime -= 0.25;
 
                 if (this.currentLevel > this.totalLevels) {
                     this.gameOver(true);
@@ -241,47 +220,43 @@
                 }
             }
 
-            gameOver(isSuccess) {
+            gameOver(isWin) {
+                clearInterval(this.timer);
                 this.gameScreen.classList.remove('active');
-                
-                if (isSuccess) {
-                    this.successScreen.classList.add('active');
+                this.endScreen.classList.add('active');
+
+                if (isWin) {
+                    this.endTitleEl.textContent = 'Congratulations. You made it through all the levels !';
+                    this.endTitleEl.style.color = 'red';
                 } else {
-                    this.failureScreen.classList.add('active');
-                    this.scoreMessage.textContent = `Your Score is ${this.score}`;
+                    this.endTitleEl.textContent = 'Sorry, You Failed !';
+                    this.endTitleEl.style.color = 'red';
                 }
+
+                this.scoreEl.textContent = `Your Score is ${this.score}`;
+                this.scoreEl.style.color = 'blue';
             }
 
             resetGame() {
-                this.currentLevel = 1;
-                this.score = 0;
-                this.gameTime = 6;
-
-                this.failureScreen.classList.remove('active');
-                this.successScreen.classList.remove('active');
+                this.endScreen.classList.remove('active');
                 this.startScreen.classList.add('active');
             }
 
-            getRandomColor() {
-                return COLORS[Math.floor(Math.random() * COLORS.length)];
+            getRandomItem(arr) {
+                return arr[Math.floor(Math.random() * arr.length)];
             }
 
-            getRandomColorExcept(excludeColor) {
-                const availableColors = COLORS.filter(color => color !== excludeColor);
-                return availableColors[Math.floor(Math.random() * availableColors.length)];
+            getDistinctColor(keyword) {
+                const availableColors = colors.filter(color => color !== keyword);
+                return this.getRandomItem(availableColors);
             }
 
-            shuffleArray(array) {
-                for (let i = array.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [array[i], array[j]] = [array[j], array[i]];
-                }
-                return array;
+            shuffleArray(arr) {
+                return arr.sort(() => Math.random() - 0.5);
             }
         }
 
-        // 初始化游戏
-        new AttentionGame();
+        new Game();
     </script>
 </body>
 </html>
